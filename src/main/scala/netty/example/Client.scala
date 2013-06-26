@@ -7,8 +7,9 @@ import org.jboss.netty.channel._
 import java.net.InetSocketAddress
 import org.jboss.netty.buffer.ChannelBuffer
 import java.util.Date
+import akka.actor.{Props, ActorSystem, Actor}
 
-class Client(host: String, port: Int, handler: ChannelHandler) {
+class Client(host: String, port: Int, handler: ChannelHandler) extends Actor {
   def run {
     val factory =
       new NioClientSocketChannelFactory(
@@ -24,6 +25,11 @@ class Client(host: String, port: Int, handler: ChannelHandler) {
     bootstrap.setOption("tcpNoDelay", true)
     bootstrap.setOption("keepAlive", true)
     bootstrap.connect(new InetSocketAddress(host, port))
+  }
+
+  def receive = {
+    case "query" => run
+    case _ => println("don't know what are you talking about")
   }
 }
 
@@ -45,10 +51,15 @@ class TimeClientHandler extends SimpleChannelHandler {
 }
 
 object MainClient extends App {
+
+  val system = ActorSystem("MySystem")
+  val myActor = {
+    system.actorOf(Props(new Client("localhost", 8080, new TimeClientHandler)), name = "TimeClient")
+  }
+
   (1 to 3).foreach {
-    x =>
-    {
-      new Client("localhost", 8080, new TimeClientHandler).run
+    x => {
+      myActor ! "query"
       Thread.sleep(5000)
     }
   }

@@ -64,6 +64,5 @@ class TimeServerHandler extends SimpleChannelHandler {
 
 
 object Main extends App {
-  //  val echoServer = new Server(8080, new EchoServerHandler).run
   val timeServer = new Server(8080, new TimeServerHandler).run
 }
